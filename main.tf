@@ -41,27 +41,9 @@ resource "helm_release" "argocd" {
   replace                    = try(var.argocd.replace, null)
   lint                       = try(var.argocd.lint, null)
 
-  # dynamic "postrender" {
-  #   for_each = length(try(var.argocd.postrender, {})) > 0 ? [var.argocd.postrender] : []
-
-  #   content {
-  #     binary_path = postrender.value.binary_path
-  #     args        = try(postrender.value.args, null)
-  #   }
-  # }
-
   postrender = try(var.argocd.postrender, null)
   set = try(var.argocd.set, [])
   set_sensitive = try(var.argocd.set_sensitive, [])
-  # dynamic "set_sensitive" {
-  #   for_each = try(var.argocd.set_sensitive, [])
-
-  #   content {
-  #     name  = set_sensitive.value.name
-  #     value = set_sensitive.value.value
-  #     type  = try(set_sensitive.value.type, null)
-  #   }
-  # }
 
 }
 
@@ -69,64 +51,50 @@ resource "helm_release" "argocd" {
 ################################################################################
 # ArgoCD Cluster
 ################################################################################
-locals {
-  cluster_name = try(var.cluster.cluster_name, "in-cluster")
-  environment  = try(var.cluster.environment, "dev")
-  argocd_labels = merge({
-    cluster_name                     = local.cluster_name
-    environment                      = local.environment
-    enable_argocd                    = true
-    "argocd.argoproj.io/secret-type" = "cluster"
-    },
-    try(var.cluster.addons, {})
-  )
-  argocd_annotations = merge(
-    {
-      cluster_name = local.cluster_name
-      environment  = local.environment
-    },
-    try(var.cluster.metadata, {})
-  )
-}
-
-locals {
-  config = <<-EOT
-    {
-      "tlsClientConfig": {
-        "insecure": false
-      }
-    }
-  EOT
-  argocd = {
-    apiVersion = "v1"
-    kind       = "Secret"
-    metadata = {
-      name        = try(var.cluster.secret_name, local.cluster_name)
-      namespace   = try(var.cluster.secret_namespace, "argocd")
-      annotations = local.argocd_annotations
-      labels      = local.argocd_labels
-    }
-    stringData = {
-      name   = local.cluster_name
-      server = try(var.cluster.server, "https://kubernetes.default.svc")
-      config = try(var.cluster.config, local.config)
-    }
-  }
-}
-# resource "kubernetes_secret_v1" "cluster" {
-#   count = var.create && (var.cluster != null) ? 1 : 0
-
-#   metadata {
-#     name        = local.argocd.metadata.name
-#     namespace   = local.argocd.metadata.namespace
-#     annotations = local.argocd.metadata.annotations
-#     labels      = local.argocd.metadata.labels
-#   }
-#   data = local.argocd.stringData
-
-#   depends_on = [helm_release.argocd]
+# locals {
+#   cluster_name = try(var.cluster.cluster_name, "in-cluster")
+#   environment  = try(var.cluster.environment, "dev")
+#   argocd_labels = merge({
+#     cluster_name                     = local.cluster_name
+#     environment                      = local.environment
+#     enable_argocd                    = true
+#     "argocd.argoproj.io/secret-type" = "cluster"
+#     },
+#     try(var.cluster.addons, {})
+#   )
+#   argocd_annotations = merge(
+#     {
+#       cluster_name = local.cluster_name
+#       environment  = local.environment
+#     },
+#     try(var.cluster.metadata, {})
+#   )
 # }
 
+# locals {
+#   config = <<-EOT
+#     {
+#       "tlsClientConfig": {
+#         "insecure": false
+#       }
+#     }
+#   EOT
+#   argocd = {
+#     apiVersion = "v1"
+#     kind       = "Secret"
+#     metadata = {
+#       name        = try(var.cluster.secret_name, local.cluster_name)
+#       namespace   = try(var.cluster.secret_namespace, "argocd")
+#       annotations = local.argocd_annotations
+#       labels      = local.argocd_labels
+#     }
+#     stringData = {
+#       name   = local.cluster_name
+#       server = try(var.cluster.server, "https://kubernetes.default.svc")
+#       config = try(var.cluster.config, local.config)
+#     }
+#   }
+# }
 
 ################################################################################
 # Create App of Apps
