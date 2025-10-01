@@ -146,5 +146,5 @@ resource "helm_release" "bootstrap" {
     EOT
   ]
 
-  # depends_on = [resource.kubernetes_secret_v1.cluster]
+  depends_on = [helm_release.argocd]
 }
