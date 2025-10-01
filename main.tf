@@ -113,19 +113,19 @@ locals {
     }
   }
 }
-resource "kubernetes_secret_v1" "cluster" {
-  count = var.create && (var.cluster != null) ? 1 : 0
+# resource "kubernetes_secret_v1" "cluster" {
+#   count = var.create && (var.cluster != null) ? 1 : 0
 
-  metadata {
-    name        = local.argocd.metadata.name
-    namespace   = local.argocd.metadata.namespace
-    annotations = local.argocd.metadata.annotations
-    labels      = local.argocd.metadata.labels
-  }
-  data = local.argocd.stringData
+#   metadata {
+#     name        = local.argocd.metadata.name
+#     namespace   = local.argocd.metadata.namespace
+#     annotations = local.argocd.metadata.annotations
+#     labels      = local.argocd.metadata.labels
+#   }
+#   data = local.argocd.stringData
 
-  depends_on = [helm_release.argocd]
-}
+#   depends_on = [helm_release.argocd]
+# }
 
 
 ################################################################################
@@ -146,5 +146,5 @@ resource "helm_release" "bootstrap" {
     EOT
   ]
 
-  depends_on = [resource.kubernetes_secret_v1.cluster]
+  # depends_on = [resource.kubernetes_secret_v1.cluster]
 }
